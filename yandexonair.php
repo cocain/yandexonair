@@ -15,6 +15,7 @@ $cache->addServer('127.0.0.1', 11211);
  *	if(preg_match('%yandexonair%', $key))
  *		$cache->delete($key);
  * }
+ * exit;
  * # or just restart memcached for remove all key
 */
 
