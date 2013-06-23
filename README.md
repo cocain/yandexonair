@@ -6,7 +6,7 @@ Yandex On Air Parser
 
 Требуется Memcached. Лог работы:
 ...
-~~~~~~~~~~~~~~~~~~~~~~
+\~~~~~~~~~~~~~~~~~~~~~~
 [+] query: 4717
 [+] Matches count: 4125
 [~] Uniq: 18514
