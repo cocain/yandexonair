@@ -1,10 +1,35 @@
 <?php
 
+# file with result
+$file = './result';
+$perf = 'yandexonair';
+
+$k_count = $perf.'_count';
+$k_key	 = $perf.'_key_';
 $cache = new Memcached();
 $cache->addServer('127.0.0.1', 11211);
-$cache->set('count', 0);
+
+/*
+ * # delete keys from Memcached by perfix
+ * foreach(explode("\n", `memdump --server 127.0.0.1`) as $key) {
+ *	if(preg_match('%yandexonair%', $key))
+ *		$cache->delete($key);
+ * }
+ * # or just restart memcached for remove all key
+*/
+
+$cache->set($k_count, $cache->get($k_count) ? $cache->get($k_count) : 0);
+
+
 $numquery = 1;
-$handle = fopen('./result', 'w');
+
+if(file_exists($file)) {
+	$list = array_map('trim', file($file));
+	foreach($list as $key) {
+		$cache->set($k_key.md5($key), true);
+	}
+}
+$handle = fopen('./result', 'a+');
 
 while(true) {
 	print "[+] query: {$numquery}\n";
@@ -13,15 +38,16 @@ while(true) {
 
 	print count($matches[1]) ? "[+] Matches count: ".count($matches[1])."\n" : "[-] Matches not found\n";
 
-	foreach($matches[1] as $query) 
+	foreach($matches[1] as $key) 
 	{
-		if(!$cache->get(md5($query))) {
-			$cache->set(md5($query), true);
-			$cache->set('count', $cache->get('count')+1);
-			fwrite($handle, $query."\n");
+		$md5 = $k_key.md5($key);
+		if(!$cache->get($md5)) {
+			$cache->set($k_key.md5($key), true);
+			$cache->set($k_count, $cache->get($k_count)+1);
+			fwrite($handle, $key."\n");
 		}
 	}
-	print "[~] Uniq: ".$cache->get('count')."\n~~~~~~~~~~~~~~~~~~~~~~\n";
+	print "[~] Uniq: ".$cache->get($k_count)."\n~~~~~~~~~~~~~~~~~~~~~~\n";
 	$numquery++;
 }
 fclose($handle);
